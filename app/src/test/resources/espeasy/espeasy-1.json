@@ -161,7 +161,7 @@
       ],
       "TaskInterval": 0,
       "Type": "Switch input - Switch",
-      "TaskName": "Relais GPIO-12",
+      "TaskName": "Relais~GPIO~12",
       "TaskDeviceNumber": 1,
       "TaskEnabled": "true",
       "TaskNumber": 3
