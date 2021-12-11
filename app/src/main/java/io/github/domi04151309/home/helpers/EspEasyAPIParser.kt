@@ -41,6 +41,11 @@ class EspEasyAPIParser(val url: String, val resources: Resources) {
     private fun parseEnvironment(listItems: ArrayList<ListViewItem>, type: String, currentSensor: JSONObject)  {
         var taskIcons = intArrayOf()
         when (type) {
+            "Environment - BMx280" -> {
+                taskIcons += R.drawable.ic_device_thermometer
+                taskIcons += R.drawable.ic_humidity
+                taskIcons += R.drawable.ic_info
+            }
             "Environment - DHT11/12/22  SONOFF2301/7021" -> {
                 taskIcons += R.drawable.ic_device_thermometer
                 taskIcons += R.drawable.ic_humidity
@@ -55,8 +60,14 @@ class EspEasyAPIParser(val url: String, val resources: Resources) {
             val currentTask = currentSensor.getJSONArray("TaskValues").getJSONObject(taskId)
             val currentValue = currentTask.getString("Value")
             if (!currentValue.equals("nan")) {
+                val suffix = when (taskIcons[taskId]) {
+                    R.drawable.ic_device_thermometer -> " °C"
+                    R.drawable.ic_humidity -> " %"
+                    R.drawable.ic_info -> " hPa"
+                    else -> ""
+                }
                 listItems += ListViewItem(
-                    title = currentValue,
+                    title = currentValue + suffix,
                     summary = taskName + ": " + currentTask.getString("Name"),
                     icon = taskIcons[taskId]
                 )
@@ -70,11 +81,11 @@ class EspEasyAPIParser(val url: String, val resources: Resources) {
                 val currentState = currentSensor.getJSONArray("TaskValues").getJSONObject(0).getInt("Value") > 0
                 var taskName =currentSensor.getString("TaskName")
                 var gpioId = ""
-                val gpioFinder = Regex("~GPIO~([0-9]+)$")
+                val gpioFinder = Regex(" GPIO-([0-9]+)$")
                 val matchResult = gpioFinder.find(taskName)
                 if (matchResult != null && matchResult.groupValues.size > 1) {
                     gpioId = matchResult.groupValues[1]
-                    taskName = taskName.replace("~GPIO~" + gpioId, "")
+                    taskName = taskName.replace(" GPIO-" + gpioId, "")
                 }
                 listItems += ListViewItem(
                     title = taskName,
