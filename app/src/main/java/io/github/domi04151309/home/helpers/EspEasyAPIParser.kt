@@ -19,11 +19,11 @@ class EspEasyAPIParser(val url: String, val resources: Resources) {
                 continue
             }
 
-            val type = currentSensor.optString("Type")
-            if (type.startsWith("Environment")) {
-                parseEnvironment(listItems, type, currentSensor)
-            } else if (type.startsWith("Switch")) {
-                parseSwitch(listItems, type, currentSensor)
+            val type = currentSensor.optInt("TaskDeviceNumber")
+            when (type){
+                //28=BMPx280|5=DHT22|4=DS18b20|1=Switch
+                28,5,4 -> {parseEnvironment(listItems, currentSensor)}
+                1 -> {parseSwitch(listItems, currentSensor)}
             }
         }
 
@@ -38,19 +38,19 @@ class EspEasyAPIParser(val url: String, val resources: Resources) {
         return listItems
     }
 
-    private fun parseEnvironment(listItems: ArrayList<ListViewItem>, type: String, currentSensor: JSONObject)  {
+    private fun parseEnvironment(listItems: ArrayList<ListViewItem>, currentSensor: JSONObject)  {
         var taskIcons = intArrayOf()
-        when (type) {
-            "Environment - BMx280" -> {
+        when (currentSensor.optInt("TaskDeviceNumber")) {
+            28 -> {
                 taskIcons += R.drawable.ic_device_thermometer
                 taskIcons += R.drawable.ic_humidity
-                taskIcons += R.drawable.ic_info
+                taskIcons += R.drawable.ic_device_barometer
             }
-            "Environment - DHT11/12/22  SONOFF2301/7021" -> {
+            5 -> {
                 taskIcons += R.drawable.ic_device_thermometer
                 taskIcons += R.drawable.ic_humidity
             }
-            "Environment - DS18b20" -> {
+            4 -> {
                 taskIcons += R.drawable.ic_device_thermometer
             }
         }
@@ -63,7 +63,7 @@ class EspEasyAPIParser(val url: String, val resources: Resources) {
                 val suffix = when (taskIcons[taskId]) {
                     R.drawable.ic_device_thermometer -> " °C"
                     R.drawable.ic_humidity -> " %"
-                    R.drawable.ic_info -> " hPa"
+                    R.drawable.ic_device_barometer -> " hPa"
                     else -> ""
                 }
                 listItems += ListViewItem(
@@ -75,9 +75,9 @@ class EspEasyAPIParser(val url: String, val resources: Resources) {
         }
     }
 
-    private fun parseSwitch(listItems: ArrayList<ListViewItem>, type: String, currentSensor: JSONObject) {
-        when (type) {
-            "Switch input - Switch" -> {
+    private fun parseSwitch(listItems: ArrayList<ListViewItem>, currentSensor: JSONObject) {
+        when (currentSensor.optInt("TaskDeviceNumber")) {
+            1 -> {
                 val currentState = currentSensor.getJSONArray("TaskValues").getJSONObject(0).getInt("Value") > 0
                 var taskName =currentSensor.getString("TaskName")
                 var gpioId = ""
